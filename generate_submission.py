@@ -6,15 +6,18 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from docx import Document
+from docx.shared import Pt
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib.units import inch
-from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, TableStyle
+from reportlab.platypus import Paragraph, Preformatted, SimpleDocTemplate, Spacer, Table, TableStyle
 
 
 ROOT = Path(__file__).resolve().parent
 OUTPUT_DIR = ROOT / "submission"
+SQL_APPENDIX_PATH = ROOT / "forest_query_analysis.sql"
 
 
 @dataclass(frozen=True)
@@ -103,6 +106,10 @@ def fmt_sqkm(value: float) -> str:
 
 def fmt_pct(value: float) -> str:
     return f"{value:.2f}%"
+
+
+def load_sql_appendix() -> str:
+    return SQL_APPENDIX_PATH.read_text(encoding="utf-8").strip()
 
 
 def build_metrics(conn: sqlite3.Connection) -> dict:
@@ -377,6 +384,7 @@ def build_markdown(metrics: dict) -> str:
     percent_rows = metrics["top_percent_decrease"]
     quartile_rows = metrics["quartile_counts"]
     top_quartile = metrics["top_quartile_countries"]
+    sql_appendix = load_sql_appendix()
 
     lines = [
         "# Report for ForestQuery into Global Deforestation, 1990 to 2016",
@@ -487,7 +495,9 @@ def build_markdown(metrics: dict) -> str:
             "",
             "## 5. Appendix: SQL Queries Used",
             "",
-            "See `forest_query_analysis.sql` for the complete SQL appendix, including the `forestation` view definition and every query used to answer the project questions.",
+            "```sql",
+            sql_appendix,
+            "```",
         ]
     )
 
@@ -518,6 +528,7 @@ def build_docx(metrics: dict, output_path: Path) -> None:
     percent_rows = metrics["top_percent_decrease"]
     quartile_rows = metrics["quartile_counts"]
     top_quartile = metrics["top_quartile_countries"]
+    sql_appendix = load_sql_appendix()
 
     doc = Document()
     doc.add_heading("Report for ForestQuery into Global Deforestation, 1990 to 2016", 0)
@@ -645,29 +656,57 @@ def build_docx(metrics: dict, output_path: Path) -> None:
     )
 
     doc.add_heading("5. Appendix: SQL Queries Used", level=1)
-    doc.add_paragraph("See forest_query_analysis.sql for the full SQL appendix.")
+    sql_paragraph = doc.add_paragraph(style="No Spacing")
+    sql_run = sql_paragraph.add_run(sql_appendix)
+    sql_run.font.name = "Courier New"
+    sql_run.font.size = Pt(8)
 
     doc.save(output_path)
 
 
 def build_pdf(markdown_text: str, metrics: dict, output_path: Path) -> None:
     styles = getSampleStyleSheet()
+    code_style = ParagraphStyle(
+        "CodeBlock",
+        parent=styles["Code"] if "Code" in styles else styles["BodyText"],
+        fontName="Courier",
+        fontSize=7,
+        leading=8.5,
+        leftIndent=10,
+        rightIndent=10,
+        spaceBefore=6,
+        spaceAfter=6,
+    )
     story = []
-    story.append(Paragraph("Report for ForestQuery into Global Deforestation, 1990 to 2016", styles["Title"]))
-    story.append(Spacer(1, 0.2 * inch))
+    region_2016 = metrics["region_2016"]
+    region_1990 = metrics["region_1990"]
+    region_2016_map = {row["region"]: row["pct"] for row in region_2016}
+    region_1990_map = {row["region"]: row["pct"] for row in region_1990}
+    decreased = metrics["decreased_regions"]
+    biggest_gain = metrics["top_increase_amount"][0]
+    second_gain = metrics["top_increase_amount"][1]
+    percent_gain = metrics["top_increase_percent"][0]
+    amount_rows = metrics["top_amount_decrease"]
+    percent_rows = metrics["top_percent_decrease"]
+    quartile_rows = metrics["quartile_counts"]
+    top_quartile = metrics["top_quartile_countries"]
+    sql_appendix = load_sql_appendix()
 
-    for paragraph in markdown_text.split("\n\n"):
-        stripped = paragraph.strip()
-        if not stripped or stripped.startswith("|") or stripped.startswith("See `"):
-            continue
-        if stripped.startswith("# "):
-            story.append(Paragraph(stripped[2:], styles["Title"]))
-        elif stripped.startswith("## "):
-            story.append(Paragraph(stripped[3:], styles["Heading1"]))
-        elif stripped.startswith("### "):
-            story.append(Paragraph(stripped[4:], styles["Heading2"]))
-        else:
-            story.append(Paragraph(stripped.replace("\n", "<br/>"), styles["BodyText"]))
+    story.append(Paragraph("Report for ForestQuery into Global Deforestation, 1990 to 2016", styles["Title"]))
+    story.append(Spacer(1, 0.18 * inch))
+    story.append(
+        Paragraph(
+            "ForestQuery is on a mission to combat deforestation around the world and to raise awareness "
+            "about how land-use change affects communities and ecosystems. This report uses the supplied "
+            "World Bank forest-area, land-area, and regional datasets to identify the clearest patterns "
+            "in global, regional, and country-level forestation between 1990 and 2016.",
+            styles["BodyText"],
+        )
+    )
+    story.append(Spacer(1, 0.18 * inch))
+
+    def add_body(text: str) -> None:
+        story.append(Paragraph(text, styles["BodyText"]))
         story.append(Spacer(1, 0.12 * inch))
 
     def add_pdf_table(headers: list[str], rows: list[list[str]]) -> None:
@@ -687,6 +726,34 @@ def build_pdf(markdown_text: str, metrics: dict, output_path: Path) -> None:
         story.append(table)
         story.append(Spacer(1, 0.2 * inch))
 
+    story.append(Paragraph("1. Global Situation", styles["Heading1"]))
+    story.append(Spacer(1, 0.08 * inch))
+    add_body(
+        f"In 1990, the world had {fmt_sqkm(metrics['world_1990'])} of forest area. By 2016, that figure "
+        f"had fallen to {fmt_sqkm(metrics['world_2016'])}, a net loss of {fmt_sqkm(metrics['world_loss'])} "
+        f"or {fmt_pct(metrics['world_loss_pct'])}."
+    )
+    add_body(
+        f"The amount of forest area lost during this period is closest to the 2016 total land area of "
+        f"{metrics['closest_country']['country_name']}, which had "
+        f"{fmt_sqkm(metrics['closest_country']['total_area_sqkm'])} of land area. That comparison helps "
+        "frame the decline in more concrete terms: the world effectively lost forest cover on a scale "
+        "comparable to an entire large country."
+    )
+
+    story.append(Paragraph("2. Regional Outlook", styles["Heading1"]))
+    story.append(Spacer(1, 0.08 * inch))
+    add_body(
+        f"In 2016, {fmt_pct(region_2016_map['World'])} of the world's land area was forested. The highest "
+        f"regional forest share was in {region_2016[0]['region']} at {fmt_pct(region_2016[0]['pct'])}, "
+        f"while the lowest was in {region_2016[-1]['region']} at {fmt_pct(region_2016[-1]['pct'])}."
+    )
+    add_body(
+        f"In 1990, the world forest share was slightly higher at {fmt_pct(region_1990_map['World'])}. "
+        f"The highest regional forest share was again {region_1990[0]['region']} at "
+        f"{fmt_pct(region_1990[0]['pct'])}, and the lowest was again {region_1990[-1]['region']} at "
+        f"{fmt_pct(region_1990[-1]['pct'])}."
+    )
     add_pdf_table(
         ["Region", "1990 Forest Percentage", "2016 Forest Percentage"],
         [
@@ -694,24 +761,70 @@ def build_pdf(markdown_text: str, metrics: dict, output_path: Path) -> None:
             for row in metrics["regional_table"]
         ],
     )
+    add_body(
+        f"Only two non-world regions saw their forest share decline from 1990 to 2016: "
+        f"{decreased[0]['region']} fell from {fmt_pct(decreased[0]['pct_1990'])} to "
+        f"{fmt_pct(decreased[0]['pct_2016'])}, and {decreased[1]['region']} fell from "
+        f"{fmt_pct(decreased[1]['pct_1990'])} to {fmt_pct(decreased[1]['pct_2016'])}. Every other region "
+        f"increased slightly, but those gains were not large enough to offset the declines in these two "
+        f"regions, so the world total still fell from {fmt_pct(region_1990_map['World'])} to "
+        f"{fmt_pct(region_2016_map['World'])}."
+    )
+
+    story.append(Paragraph("3. Country-Level Detail", styles["Heading1"]))
+    story.append(Spacer(1, 0.08 * inch))
+    story.append(Paragraph("Success Stories", styles["Heading2"]))
+    story.append(Spacer(1, 0.06 * inch))
+    add_body(
+        f"The strongest positive outlier in the dataset is {biggest_gain['country_name']}, which increased "
+        f"its forest area by {fmt_sqkm(biggest_gain['increase_sqkm'])} between 1990 and 2016. The next-largest "
+        f"gain came from {second_gain['country_name']}, but its increase of {fmt_sqkm(second_gain['increase_sqkm'])} "
+        "was far smaller. This suggests ForestQuery can learn from countries that have paired large land bases "
+        "with sustained reforestation or conservation gains."
+    )
+    add_body(
+        f"When the analysis shifts from absolute change to percent change, the leader is "
+        f"{percent_gain['country_name']}, which increased forest area by {fmt_pct(percent_gain['pct_increase'])}. "
+        "This highlights that smaller countries can deliver dramatic relative gains even when their raw "
+        "square-kilometer increase is not the largest in the world."
+    )
+    story.append(Paragraph("Largest Concerns", styles["Heading2"]))
+    story.append(Spacer(1, 0.06 * inch))
+    add_body("The five countries with the largest absolute decreases in forest area between 1990 and 2016 are shown below.")
     add_pdf_table(
-        ["Country", "Region", "Absolute Forest Area Change"],
+        ["Country", "Region", "Forest Area Decrease"],
         [
             [row["country_name"], row["region"], fmt_sqkm(abs(row["change_sqkm"]))]
             for row in metrics["top_amount_decrease"]
         ],
     )
+    add_body("The next table shows the five largest percent decreases in forest area over the same period.")
     add_pdf_table(
-        ["Country", "Region", "Pct Forest Area Change"],
+        ["Country", "Region", "Pct Forest Area Decrease"],
         [
             [row["country_name"], row["region"], fmt_pct(abs(row["percent_change"]))]
             for row in metrics["top_percent_decrease"]
         ],
     )
+    add_body(
+        f"Four of the top five countries by percent forest loss are in {percent_rows[1]['region']}: "
+        f"{percent_rows[1]['country_name']}, {percent_rows[2]['country_name']}, {percent_rows[3]['country_name']}, "
+        f"and {percent_rows[4]['country_name']}. The fifth is {percent_rows[0]['country_name']} in "
+        f"{percent_rows[0]['region']}."
+    )
+    add_body(
+        f"{amount_rows[3]['country_name']} is the only country that appears in the top five for both absolute "
+        "loss and percent loss. That combination makes it an especially urgent case for ForestQuery because "
+        "the country is losing forest at scale and at a severe relative rate."
+    )
+    story.append(Paragraph("Quartiles", styles["Heading2"]))
+    story.append(Spacer(1, 0.06 * inch))
     add_pdf_table(
         ["Quartile", "Number of Countries"],
         [[row["quartile"], str(row["country_count"])] for row in metrics["quartile_counts"]],
     )
+    add_body(f"The largest number of countries in 2016 were in the {quartile_rows[0]['quartile']}.")
+    add_body(f"There were {len(top_quartile)} countries in the top quartile with more than 75% of land designated as forest.")
     add_pdf_table(
         ["Country", "Region", "Pct Designated as Forest"],
         [
@@ -719,6 +832,33 @@ def build_pdf(markdown_text: str, metrics: dict, output_path: Path) -> None:
             for row in metrics["top_quartile_countries"]
         ],
     )
+    add_body(
+        f"In 2016, {metrics['countries_above_us']} countries had a higher forestation percentage than the United States."
+    )
+
+    story.append(Paragraph("4. Recommendations", styles["Heading1"]))
+    story.append(Spacer(1, 0.08 * inch))
+    add_body(
+        f"ForestQuery should prioritize interventions and partnerships in {amount_rows[0]['country_name']}, "
+        f"{amount_rows[1]['country_name']}, {amount_rows[3]['country_name']}, and {amount_rows[4]['country_name']}. "
+        "These countries represent either extremely large absolute losses, severe relative losses, or both."
+    )
+    add_body(
+        f"The regional pattern also argues for sustained attention in {decreased[0]['region']} and "
+        f"{decreased[1]['region']}, the only two non-world regions that moved backward over the period. "
+        "Communications, grantmaking, and local partner support should be concentrated where these regional "
+        "declines overlap with the most at-risk countries."
+    )
+    add_body(
+        f"At the same time, ForestQuery should study positive cases such as {biggest_gain['country_name']} and "
+        f"{percent_gain['country_name']} to understand which policy, restoration, and land-management strategies "
+        "might be adapted elsewhere. Learning from successful reforestation stories is likely to improve the impact "
+        "of future campaigns."
+    )
+
+    story.append(Paragraph("5. Appendix: SQL Queries Used", styles["Heading1"]))
+    story.append(Spacer(1, 0.08 * inch))
+    story.append(Preformatted(sql_appendix, code_style))
 
     document = SimpleDocTemplate(
         str(output_path),
