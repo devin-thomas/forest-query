@@ -4,398 +4,926 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ForestQuery Deforestation Analysis</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #f3efe4;
-      --paper: #fffdf7;
-      --ink: #1d2a22;
-      --muted: #58675d;
-      --accent: #285943;
-      --accent-soft: #dbe9de;
-      --line: #c9d4c7;
-      --highlight: #eabf6b;
-      --shadow: 0 18px 50px rgba(29, 42, 34, 0.12);
+      --bg: #050806;
+      --panel: #0b120d;
+      --panel-2: #0f1711;
+      --line: #1c2a1f;
+      --line-strong: #26422b;
+      --text: #f5f8f4;
+      --muted: #a5b3a7;
+      --green: #2c7a3f;
+      --green-bright: #56b26d;
+      --green-soft: #183120;
+      --black: #050806;
+      --shadow: 0 18px 40px rgba(0, 0, 0, 0.34);
+      --max: 1160px;
+      --radius: 18px;
     }
 
     * {
       box-sizing: border-box;
     }
 
+    html {
+      scroll-behavior: smooth;
+    }
+
     body {
       margin: 0;
-      font-family: Georgia, "Times New Roman", serif;
-      color: var(--ink);
+      font-family: "Source Sans 3", "Segoe UI", sans-serif;
+      color: var(--text);
       background:
-        radial-gradient(circle at top left, rgba(234, 191, 107, 0.38), transparent 30%),
-        radial-gradient(circle at bottom right, rgba(40, 89, 67, 0.18), transparent 35%),
-        linear-gradient(180deg, #f8f4ea 0%, #efe7d7 100%);
-      line-height: 1.6;
+        radial-gradient(circle at top right, rgba(44, 122, 63, 0.18), transparent 28%),
+        linear-gradient(180deg, #081009 0%, #050806 42%, #071009 100%);
+      line-height: 1.45;
+      overflow-x: hidden;
     }
 
     a {
-      color: var(--accent);
+      color: inherit;
+      text-decoration: none;
+    }
+
+    img,
+    svg {
+      display: block;
+      max-width: 100%;
+    }
+
+    .site-header,
+    .hero,
+    .section,
+    .site-footer {
+      padding-left: 1.5rem;
+      padding-right: 1.5rem;
+    }
+
+    .inner {
+      max-width: var(--max);
+      margin: 0 auto;
+    }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+      background: rgba(5, 8, 6, 0.84);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .site-header .inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      min-height: 72px;
+    }
+
+    .brand {
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: 0.01em;
+    }
+
+    .brand span {
+      color: var(--green-bright);
+    }
+
+    .nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .nav a:hover,
+    .nav a:focus-visible {
+      color: var(--text);
     }
 
     .hero {
-      padding: 4.5rem 1.5rem 3rem;
+      padding-top: 4rem;
+      padding-bottom: 2rem;
     }
 
-    .hero-inner {
-      max-width: 1100px;
-      margin: 0 auto;
+    .hero-grid {
       display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
       gap: 2rem;
-      grid-template-columns: 1.3fr 0.7fr;
       align-items: end;
-    }
-
-    .eyebrow {
-      display: inline-block;
-      margin-bottom: 1rem;
-      padding: 0.35rem 0.8rem;
-      border: 1px solid rgba(40, 89, 67, 0.18);
-      border-radius: 999px;
-      background: rgba(255, 253, 247, 0.7);
-      color: var(--accent);
-      font-size: 0.85rem;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
     }
 
     h1,
     h2,
-    h3 {
-      margin: 0 0 0.8rem;
-      line-height: 1.1;
-      font-weight: 700;
+    h3,
+    p {
+      margin: 0;
     }
 
     h1 {
-      font-size: clamp(2.4rem, 5vw, 4.7rem);
       max-width: 12ch;
+      font-size: clamp(3rem, 6vw, 5.35rem);
+      line-height: 0.98;
+      letter-spacing: -0.04em;
+      font-weight: 800;
     }
 
-    .lede {
-      max-width: 62ch;
-      font-size: 1.08rem;
+    .hero-copy p {
+      max-width: 42rem;
+      margin-top: 1.25rem;
+      font-size: clamp(1.2rem, 1.6vw, 1.75rem);
+      line-height: 1.4;
+      color: #edf3ed;
+    }
+
+    .hero-copy p.secondary {
       color: var(--muted);
     }
 
-    .hero-card,
-    .panel,
-    .stat,
-    .table-card {
-      background: rgba(255, 253, 247, 0.9);
-      border: 1px solid rgba(29, 42, 34, 0.08);
-      border-radius: 22px;
-      box-shadow: var(--shadow);
-    }
-
-    .hero-card {
-      padding: 1.4rem;
-    }
-
-    .hero-card h2 {
-      font-size: 1rem;
-      color: var(--accent);
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-    }
-
-    .hero-card p {
-      margin: 0.4rem 0 0;
-      font-size: 1.05rem;
-    }
-
-    .hero-actions {
+    .actions {
       display: flex;
       flex-wrap: wrap;
-      gap: 0.8rem;
-      margin-top: 1.6rem;
+      gap: 1rem;
+      margin-top: 2rem;
     }
 
     .button {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      min-height: 44px;
-      padding: 0.85rem 1.15rem;
-      border-radius: 999px;
-      border: 1px solid var(--accent);
-      background: var(--accent);
-      color: #f8f4ea;
-      text-decoration: none;
+      min-width: 216px;
+      min-height: 68px;
+      padding: 0.95rem 1.6rem;
+      border-radius: 18px;
+      border: 2px solid var(--green-bright);
+      color: var(--text);
+      font-size: 1.08rem;
       font-weight: 700;
-      transition: transform 160ms ease, background 160ms ease;
+      letter-spacing: 0.01em;
+      transition: transform 180ms ease, background-color 180ms ease, border-color 180ms ease;
     }
 
-    .button:hover {
+    .button:hover,
+    .button:focus-visible {
       transform: translateY(-1px);
-      background: #1f4736;
+    }
+
+    .button.primary {
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .button.primary:hover,
+    .button.primary:focus-visible {
+      background: #236534;
+      border-color: #236534;
     }
 
     .button.secondary {
       background: transparent;
-      color: var(--accent);
+      color: var(--green-bright);
     }
 
-    main {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 0 1.5rem 4rem;
+    .hero-panel {
+      padding: 1.5rem;
+      border-radius: 24px;
+      border: 1px solid var(--line-strong);
+      background: linear-gradient(180deg, rgba(15, 23, 17, 0.98), rgba(9, 14, 10, 0.98));
+      box-shadow: var(--shadow);
     }
 
-    .stats {
+    .hero-panel h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--green-bright);
+    }
+
+    .hero-panel p {
+      margin-top: 0.9rem;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .hero-panel strong {
+      display: block;
+      margin-top: 1.1rem;
+      font-size: 2.6rem;
+      line-height: 1;
+      color: var(--text);
+    }
+
+    .section {
+      padding-top: 1.5rem;
+      padding-bottom: 1.5rem;
+    }
+
+    .section-title {
+      margin-bottom: 1.1rem;
+      font-size: clamp(2rem, 3vw, 2.8rem);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+      font-weight: 800;
+    }
+
+    .section-intro {
+      max-width: 46rem;
+      color: var(--muted);
+      font-size: 1.08rem;
+      line-height: 1.55;
+    }
+
+    .metrics {
       display: grid;
       grid-template-columns: repeat(4, minmax(0, 1fr));
       gap: 1rem;
-      margin-bottom: 2rem;
+      margin-top: 1.5rem;
     }
 
-    .stat {
-      padding: 1.2rem;
+    .metric {
+      padding: 1.3rem 1.2rem;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(11, 18, 13, 0.92);
+      box-shadow: var(--shadow);
     }
 
-    .stat-label {
-      display: block;
-      margin-bottom: 0.45rem;
+    .metric-label {
       color: var(--muted);
-      font-size: 0.85rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
+      font-size: 0.95rem;
     }
 
-    .stat-value {
-      font-size: 1.5rem;
+    .metric-value {
+      margin-top: 0.45rem;
+      font-size: clamp(1.8rem, 2.4vw, 2.35rem);
+      line-height: 1;
+      font-weight: 800;
+    }
+
+    .metric-note {
+      margin-top: 0.6rem;
+      color: #d4ddd4;
+      font-size: 0.95rem;
+    }
+
+    .analysis-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+      gap: 1rem;
+      margin-top: 1.6rem;
+    }
+
+    .card {
+      padding: 1.4rem;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(11, 18, 13, 0.94);
+      box-shadow: var(--shadow);
+    }
+
+    .card h3 {
+      font-size: 1.35rem;
+      line-height: 1.15;
       font-weight: 700;
     }
 
-    .layout {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+    .card p {
+      margin-top: 0.8rem;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.55;
+    }
+
+    .chart-card {
+      overflow: hidden;
+    }
+
+    .chart-head {
+      display: flex;
+      justify-content: space-between;
       gap: 1rem;
+      align-items: start;
       margin-bottom: 1rem;
     }
 
-    .panel {
-      padding: 1.4rem;
-    }
-
-    .panel p,
-    .panel li {
+    .chart-head p {
+      max-width: 28rem;
+      margin-top: 0.25rem;
       color: var(--muted);
     }
 
-    .panel ul {
-      margin: 0.8rem 0 0;
-      padding-left: 1.2rem;
+    .legend {
+      display: flex;
+      gap: 1rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+      white-space: nowrap;
     }
 
-    .tables {
+    .legend span::before {
+      content: "";
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      margin-right: 0.45rem;
+      border-radius: 999px;
+      vertical-align: middle;
+      background: var(--green-bright);
+    }
+
+    .legend .muted::before {
+      background: #5f7162;
+    }
+
+    .chart-shell {
+      padding: 0.8rem 0.2rem 0 0.2rem;
+    }
+
+    .axis-label {
+      fill: var(--muted);
+      font-size: 13px;
+      font-family: "Source Sans 3", sans-serif;
+    }
+
+    .axis-line,
+    .grid-line {
+      stroke: rgba(255, 255, 255, 0.1);
+      stroke-width: 1;
+    }
+
+    .line-main {
+      fill: none;
+      stroke: var(--green-bright);
+      stroke-width: 4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .line-area {
+      fill: rgba(86, 178, 109, 0.12);
+    }
+
+    .point {
+      fill: #f5f8f4;
+      stroke: var(--green-bright);
+      stroke-width: 3;
+    }
+
+    .value-callout {
+      fill: #f5f8f4;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: "Source Sans 3", sans-serif;
+    }
+
+    .region-list {
+      display: grid;
+      gap: 0.95rem;
+      margin-top: 1rem;
+    }
+
+    .region-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 0.8rem;
+      align-items: center;
+    }
+
+    .region-row strong {
+      display: block;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .region-row span {
+      display: block;
+      margin-top: 0.15rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .region-row em {
+      color: #f0f5f0;
+      font-style: normal;
+      font-weight: 700;
+    }
+
+    .bar-track {
+      grid-column: 1 / -1;
+      position: relative;
+      height: 12px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .bar-fill {
+      position: absolute;
+      inset: 0 auto 0 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--green) 0%, var(--green-bright) 100%);
+    }
+
+    .loss-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .loss-bars {
       display: grid;
       gap: 1rem;
       margin-top: 1rem;
     }
 
-    .table-card {
-      padding: 1.2rem;
-      overflow-x: auto;
+    .loss-row {
+      display: grid;
+      grid-template-columns: 152px minmax(0, 1fr) 120px;
+      gap: 0.85rem;
+      align-items: center;
+      font-size: 1rem;
     }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 520px;
+    .loss-country {
+      font-weight: 600;
     }
 
-    th,
-    td {
-      padding: 0.75rem 0.7rem;
-      border-bottom: 1px solid var(--line);
-      text-align: left;
-      vertical-align: top;
-    }
-
-    th {
-      font-size: 0.83rem;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--accent);
-    }
-
-    .note {
-      margin-top: 1rem;
-      padding: 1rem 1.1rem;
-      border-left: 4px solid var(--highlight);
-      background: rgba(234, 191, 107, 0.15);
-      border-radius: 12px;
-      color: #4a463d;
-    }
-
-    footer {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 0 1.5rem 3rem;
+    .loss-region {
+      display: block;
       color: var(--muted);
+      font-size: 0.87rem;
+      font-weight: 400;
     }
 
-    @media (max-width: 860px) {
-      .hero-inner,
-      .layout,
-      .stats {
+    .loss-track {
+      height: 16px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .loss-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #15301d 0%, var(--green-bright) 100%);
+    }
+
+    .loss-value {
+      text-align: right;
+      font-weight: 700;
+      color: #e9f3e9;
+    }
+
+    .priority-list {
+      display: grid;
+      gap: 0.9rem;
+      margin-top: 1rem;
+      padding: 0;
+      list-style: none;
+    }
+
+    .priority-item {
+      padding: 1rem 1.05rem;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .priority-item strong {
+      display: block;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .priority-item span {
+      display: block;
+      margin-top: 0.3rem;
+      color: var(--muted);
+      font-size: 0.96rem;
+      line-height: 1.5;
+    }
+
+    .download-card {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .download-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+    }
+
+    .site-footer {
+      padding-top: 1rem;
+      padding-bottom: 3rem;
+    }
+
+    .site-footer p {
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 980px) {
+      .hero-grid,
+      .analysis-grid,
+      .loss-grid,
+      .metrics {
         grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .site-header .inner {
+        align-items: start;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        flex-direction: column;
+      }
+
+      .nav {
+        width: 100%;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem 1rem;
+        font-size: 1rem;
       }
 
       .hero {
-        padding-top: 3rem;
+        padding-top: 2.5rem;
+      }
+
+      h1 {
+        max-width: 100%;
+        font-size: clamp(1.95rem, 9.3vw, 3rem);
+        line-height: 1.02;
+      }
+
+      .hero-copy p {
+        font-size: 1.08rem;
+      }
+
+      .actions,
+      .download-actions {
+        flex-direction: column;
+      }
+
+      .button {
+        width: 100%;
+        min-width: 0;
+      }
+
+      .loss-row {
+        grid-template-columns: 1fr;
+      }
+
+      .loss-value {
+        text-align: left;
+      }
+
+      .legend {
+        flex-wrap: wrap;
+        white-space: normal;
       }
     }
   </style>
 </head>
 <body>
-  <header class="hero">
-    <div class="hero-inner">
-      <div>
-        <span class="eyebrow">SQL Nanodegree Project</span>
-        <h1>ForestQuery Global Deforestation Analysis</h1>
-        <p class="lede">
-          A publication-ready analysis of forest loss from 1990 to 2016 using the provided World Bank starter data.
-          The project combines SQL view design, regional and country-level investigation, and a narrative report aimed
-          at decision-makers.
-        </p>
-        <div class="hero-actions">
-          <a class="button" href="forest_query_report.pdf">Download PDF Report</a>
-          <a class="button secondary" href="https://github.com/devin-thomas/forest-query">View Repository</a>
-          <a class="button secondary" href="forest_query_analysis.sql">Read SQL Appendix</a>
-        </div>
-      </div>
-      <aside class="hero-card">
-        <h2>Project Snapshot</h2>
-        <p><strong>Course:</strong> Introduction to SQL</p>
-        <p><strong>Deliverables:</strong> SQL appendix, written report, Word/PDF exports, reproducible generator</p>
-        <p><strong>Data Scope:</strong> Global forest area, land area, and regional data from 1990 to 2016</p>
-      </aside>
+  <header class="site-header">
+    <div class="inner">
+      <div class="brand">Forest<span>Query</span></div>
+      <nav class="nav" aria-label="Primary">
+        <a href="#overview">Overview</a>
+        <a href="#trends">Global Trends</a>
+        <a href="#loss">Country Losses</a>
+        <a href="#actions">Recommendations</a>
+        <a href="#downloads">Downloads</a>
+      </nav>
     </div>
   </header>
 
-  <main>
-    <section class="stats" aria-label="Key findings">
-      <article class="stat">
-        <span class="stat-label">Global Forest Loss</span>
-        <div class="stat-value">1.32M sq km</div>
-      </article>
-      <article class="stat">
-        <span class="stat-label">Percent Decline</span>
-        <div class="stat-value">3.21%</div>
-      </article>
-      <article class="stat">
-        <span class="stat-label">Highest 2016 Region</span>
-        <div class="stat-value">Latin America &amp; Caribbean</div>
-      </article>
-      <article class="stat">
-        <span class="stat-label">Regions That Declined</span>
-        <div class="stat-value">2</div>
-      </article>
-    </section>
-
-    <section class="layout">
-      <article class="panel">
-        <h2>What The Analysis Found</h2>
+  <section class="hero" id="overview">
+    <div class="inner hero-grid">
+      <div class="hero-copy">
+        <h1>Global deforestation in clear terms.</h1>
         <p>
-          World forest area fell from 41.28 million square kilometers in 1990 to 39.96 million in 2016. The loss is
-          roughly comparable to the 2016 land area of Peru, which gives the scale of the decline a concrete real-world
-          frame of reference.
+          ForestQuery analyzes forest change from 1990 to 2016 to show where the world is losing tree cover,
+          which regions are slipping backward, and which countries deserve the most urgent attention.
+        </p>
+        <p class="secondary">
+          This page summarizes the full SQL project with the same evidence used in the written report, but in a
+          cleaner, faster-reading format built for the web.
+        </p>
+        <div class="actions">
+          <a class="button secondary" href="forest_query_report.pdf">Download Full Report</a>
+          <a class="button primary" href="https://github.com/devin-thomas/forest-query">Open Repository</a>
+        </div>
+      </div>
+
+      <aside class="hero-panel" aria-label="Key result">
+        <h2>Most Important Finding</h2>
+        <strong>1.32M sq km</strong>
+        <p>
+          The world lost 1,324,449 square kilometers of forest area between 1990 and 2016, a 3.21% decline.
         </p>
         <p>
-          Latin America &amp; Caribbean remained the most forested region in both 1990 and 2016, but it also posted the
-          largest regional drop. Sub-Saharan Africa was the only other non-world region to lose forest share over the
-          same period.
+          That loss is roughly comparable to the 2016 land area of Peru, which makes the scale of deforestation
+          much easier to grasp.
         </p>
-      </article>
-      <article class="panel">
-        <h2>Where ForestQuery Should Focus</h2>
-        <ul>
-          <li>Prioritize Brazil and Indonesia because of their exceptionally large absolute losses.</li>
-          <li>Prioritize Nigeria because it appears in the top five for both absolute and percent decline.</li>
-          <li>Study China and Iceland as positive outliers for possible reforestation lessons.</li>
-          <li>Concentrate regional attention on Latin America &amp; Caribbean and Sub-Saharan Africa.</li>
-        </ul>
-      </article>
-    </section>
-
-    <section class="tables">
-      <article class="table-card">
-        <h2>Regional Forest Share</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Region</th>
-              <th>1990</th>
-              <th>2016</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td>East Asia &amp; Pacific</td><td>25.78%</td><td>26.36%</td></tr>
-            <tr><td>Europe &amp; Central Asia</td><td>37.28%</td><td>38.04%</td></tr>
-            <tr><td>Latin America &amp; Caribbean</td><td>51.03%</td><td>46.16%</td></tr>
-            <tr><td>Middle East &amp; North Africa</td><td>1.78%</td><td>2.07%</td></tr>
-            <tr><td>North America</td><td>35.65%</td><td>36.04%</td></tr>
-            <tr><td>South Asia</td><td>16.51%</td><td>17.51%</td></tr>
-            <tr><td>Sub-Saharan Africa</td><td>30.67%</td><td>28.79%</td></tr>
-            <tr><td>World</td><td>32.42%</td><td>31.38%</td></tr>
-          </tbody>
-        </table>
-      </article>
-
-      <article class="table-card">
-        <h2>Top 5 Absolute Forest Area Decreases</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Country</th>
-              <th>Region</th>
-              <th>Decrease</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td>Brazil</td><td>Latin America &amp; Caribbean</td><td>541,510.00 sq km</td></tr>
-            <tr><td>Indonesia</td><td>East Asia &amp; Pacific</td><td>282,193.98 sq km</td></tr>
-            <tr><td>Myanmar</td><td>East Asia &amp; Pacific</td><td>107,234.00 sq km</td></tr>
-            <tr><td>Nigeria</td><td>Sub-Saharan Africa</td><td>106,506.00 sq km</td></tr>
-            <tr><td>Tanzania</td><td>Sub-Saharan Africa</td><td>102,320.00 sq km</td></tr>
-          </tbody>
-        </table>
-      </article>
-
-      <article class="table-card">
-        <h2>Top 5 Percent Forest Area Decreases</h2>
-        <table>
-          <thead>
-            <tr>
-              <th>Country</th>
-              <th>Region</th>
-              <th>Decrease</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr><td>St. Martin (French part)</td><td>Latin America &amp; Caribbean</td><td>100.00%</td></tr>
-            <tr><td>Togo</td><td>Sub-Saharan Africa</td><td>75.45%</td></tr>
-            <tr><td>Nigeria</td><td>Sub-Saharan Africa</td><td>61.80%</td></tr>
-            <tr><td>Uganda</td><td>Sub-Saharan Africa</td><td>59.13%</td></tr>
-            <tr><td>Mauritania</td><td>Sub-Saharan Africa</td><td>46.75%</td></tr>
-          </tbody>
-        </table>
-      </article>
-    </section>
-
-    <div class="note">
-      The full report, SQL appendix, and reproducible generation script are included in the repository. The GitHub Pages
-      site is meant as a fast reader-friendly summary of the final submission.
+      </aside>
     </div>
+  </section>
+
+  <main>
+    <section class="section">
+      <div class="inner">
+        <div class="metrics" aria-label="Summary metrics">
+          <article class="metric">
+            <div class="metric-label">World Forest Area in 1990</div>
+            <div class="metric-value">41.28M</div>
+            <div class="metric-note">sq km of global forest cover</div>
+          </article>
+          <article class="metric">
+            <div class="metric-label">World Forest Area in 2016</div>
+            <div class="metric-value">39.96M</div>
+            <div class="metric-note">sq km after 26 years of change</div>
+          </article>
+          <article class="metric">
+            <div class="metric-label">Highest 2016 Forest Share</div>
+            <div class="metric-value">46.16%</div>
+            <div class="metric-note">Latin America &amp; Caribbean</div>
+          </article>
+          <article class="metric">
+            <div class="metric-label">Countries Above the U.S.</div>
+            <div class="metric-value">94</div>
+            <div class="metric-note">had higher forestation in 2016</div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="trends">
+      <div class="inner">
+        <h2 class="section-title">Global Trends</h2>
+        <p class="section-intro">
+          The broad story is simple: the world lost forest area overall, and that decline was driven largely by
+          steep drops in Latin America &amp; Caribbean and Sub-Saharan Africa. The chart below shows the global
+          direction of travel, while the regional view highlights where the pressure was concentrated.
+        </p>
+
+        <div class="analysis-grid">
+          <article class="card chart-card">
+            <div class="chart-head">
+              <div>
+                <h3>World forest area fell from 41.28M to 39.96M sq km</h3>
+                <p>A focused line view makes the slow but meaningful decline easier to see than a dense table.</p>
+              </div>
+              <div class="legend">
+                <span>Observed</span>
+                <span class="muted">Axis labels</span>
+              </div>
+            </div>
+
+            <div class="chart-shell">
+              <svg viewBox="0 0 720 320" role="img" aria-label="Line chart showing world forest area declining from 1990 to 2016">
+                <defs>
+                  <linearGradient id="area-fill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#56b26d" stop-opacity="0.34"></stop>
+                    <stop offset="100%" stop-color="#56b26d" stop-opacity="0"></stop>
+                  </linearGradient>
+                </defs>
+                <line class="grid-line" x1="70" y1="70" x2="665" y2="70"></line>
+                <line class="grid-line" x1="70" y1="150" x2="665" y2="150"></line>
+                <line class="grid-line" x1="70" y1="230" x2="665" y2="230"></line>
+                <line class="axis-line" x1="70" y1="270" x2="665" y2="270"></line>
+                <line class="axis-line" x1="70" y1="46" x2="70" y2="270"></line>
+                <path class="line-area" fill="url(#area-fill)" d="M70 88 L260 128 L470 194 L665 244 L665 270 L70 270 Z"></path>
+                <path class="line-main" d="M70 88 L260 128 L470 194 L665 244"></path>
+                <circle class="point" cx="70" cy="88" r="7"></circle>
+                <circle class="point" cx="260" cy="128" r="7"></circle>
+                <circle class="point" cx="470" cy="194" r="7"></circle>
+                <circle class="point" cx="665" cy="244" r="7"></circle>
+                <text class="value-callout" x="70" y="68">41.28M</text>
+                <text class="value-callout" x="610" y="224">39.96M</text>
+                <text class="axis-label" x="62" y="276">39.8M</text>
+                <text class="axis-label" x="48" y="236">40.2M</text>
+                <text class="axis-label" x="48" y="156">40.6M</text>
+                <text class="axis-label" x="48" y="76">41.0M</text>
+                <text class="axis-label" x="60" y="298">1990</text>
+                <text class="axis-label" x="247" y="298">2000</text>
+                <text class="axis-label" x="457" y="298">2010</text>
+                <text class="axis-label" x="645" y="298">2016</text>
+              </svg>
+            </div>
+          </article>
+
+          <article class="card">
+            <h3>Only two non-world regions moved backward</h3>
+            <p>
+              Most regions improved slightly, but those gains were outweighed by declines in Latin America &amp;
+              Caribbean and Sub-Saharan Africa. The bar lengths below reflect each region's 2016 forest share.
+            </p>
+
+            <div class="region-list">
+              <div class="region-row">
+                <div>
+                  <strong>Latin America &amp; Caribbean</strong>
+                  <span>Down from <em>51.03%</em> to <em>46.16%</em></span>
+                </div>
+                <em>46.16%</em>
+                <div class="bar-track"><div class="bar-fill" style="width: 92%;"></div></div>
+              </div>
+
+              <div class="region-row">
+                <div>
+                  <strong>Europe &amp; Central Asia</strong>
+                  <span>Up from <em>37.28%</em> to <em>38.04%</em></span>
+                </div>
+                <em>38.04%</em>
+                <div class="bar-track"><div class="bar-fill" style="width: 76%;"></div></div>
+              </div>
+
+              <div class="region-row">
+                <div>
+                  <strong>North America</strong>
+                  <span>Up from <em>35.65%</em> to <em>36.04%</em></span>
+                </div>
+                <em>36.04%</em>
+                <div class="bar-track"><div class="bar-fill" style="width: 72%;"></div></div>
+              </div>
+
+              <div class="region-row">
+                <div>
+                  <strong>Sub-Saharan Africa</strong>
+                  <span>Down from <em>30.67%</em> to <em>28.79%</em></span>
+                </div>
+                <em>28.79%</em>
+                <div class="bar-track"><div class="bar-fill" style="width: 58%;"></div></div>
+              </div>
+
+              <div class="region-row">
+                <div>
+                  <strong>Middle East &amp; North Africa</strong>
+                  <span>Up from <em>1.78%</em> to <em>2.07%</em></span>
+                </div>
+                <em>2.07%</em>
+                <div class="bar-track"><div class="bar-fill" style="width: 6%;"></div></div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="loss">
+      <div class="inner">
+        <h2 class="section-title">Where The Loss Is Concentrated</h2>
+        <p class="section-intro">
+          At the country level, the concern is not spread evenly. Brazil and Indonesia stand apart in absolute
+          forest loss, while Nigeria is especially notable because it shows up among the worst countries by both
+          absolute decline and percent decline.
+        </p>
+
+        <div class="loss-grid">
+          <article class="card chart-card">
+            <h3>Top 5 countries by absolute forest area decrease</h3>
+            <p>Bar length is scaled relative to Brazil, the largest absolute decline in the dataset.</p>
+
+            <div class="loss-bars">
+              <div class="loss-row">
+                <div class="loss-country">Brazil<span class="loss-region">Latin America &amp; Caribbean</span></div>
+                <div class="loss-track"><div class="loss-fill" style="width: 100%;"></div></div>
+                <div class="loss-value">541,510</div>
+              </div>
+              <div class="loss-row">
+                <div class="loss-country">Indonesia<span class="loss-region">East Asia &amp; Pacific</span></div>
+                <div class="loss-track"><div class="loss-fill" style="width: 52.1%;"></div></div>
+                <div class="loss-value">282,194</div>
+              </div>
+              <div class="loss-row">
+                <div class="loss-country">Myanmar<span class="loss-region">East Asia &amp; Pacific</span></div>
+                <div class="loss-track"><div class="loss-fill" style="width: 19.8%;"></div></div>
+                <div class="loss-value">107,234</div>
+              </div>
+              <div class="loss-row">
+                <div class="loss-country">Nigeria<span class="loss-region">Sub-Saharan Africa</span></div>
+                <div class="loss-track"><div class="loss-fill" style="width: 19.7%;"></div></div>
+                <div class="loss-value">106,506</div>
+              </div>
+              <div class="loss-row">
+                <div class="loss-country">Tanzania<span class="loss-region">Sub-Saharan Africa</span></div>
+                <div class="loss-track"><div class="loss-fill" style="width: 18.9%;"></div></div>
+                <div class="loss-value">102,320</div>
+              </div>
+            </div>
+          </article>
+
+          <article class="card">
+            <h3>Why Nigeria deserves special attention</h3>
+            <p>
+              Nigeria is the only country that lands in the top five for both absolute forest loss and percent
+              forest loss. That makes it a high-priority case for ForestQuery because the scale of decline and the
+              severity of decline are both visible in the same country.
+            </p>
+
+            <ul class="priority-list">
+              <li class="priority-item">
+                <strong>Scale problem</strong>
+                <span>106,506 square kilometers of forest area lost from 1990 to 2016.</span>
+              </li>
+              <li class="priority-item">
+                <strong>Severity problem</strong>
+                <span>61.80% percent decrease, placing Nigeria among the steepest drops in the dataset.</span>
+              </li>
+              <li class="priority-item">
+                <strong>Regional context</strong>
+                <span>Its decline also reinforces the broader concern inside Sub-Saharan Africa.</span>
+              </li>
+            </ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="actions">
+      <div class="inner">
+        <h2 class="section-title">Recommended Action</h2>
+        <p class="section-intro">
+          The report's recommendations are strongest when they connect global scale, regional momentum, and
+          country-specific urgency. These are the clearest next moves suggested by the evidence.
+        </p>
+
+        <div class="analysis-grid">
+          <article class="card">
+            <h3>Priority countries</h3>
+            <ul class="priority-list">
+              <li class="priority-item">
+                <strong>Brazil and Indonesia</strong>
+                <span>Focus on these countries for their outsized contribution to absolute forest loss.</span>
+              </li>
+              <li class="priority-item">
+                <strong>Nigeria and Tanzania</strong>
+                <span>Use these as frontline priority cases where regional decline and country-level losses overlap.</span>
+              </li>
+              <li class="priority-item">
+                <strong>China and Iceland</strong>
+                <span>Study these as positive outliers to identify strategies worth adapting elsewhere.</span>
+              </li>
+            </ul>
+          </article>
+
+          <article class="card">
+            <h3>Regional strategy</h3>
+            <p>
+              ForestQuery should concentrate communications, partnerships, and resources in Latin America &amp;
+              Caribbean and Sub-Saharan Africa. These were the only non-world regions that lost forest share over
+              the period, and they contain several of the countries with the most serious losses.
+            </p>
+            <p>
+              A web summary cannot replace the full report, but it can make the logic of the recommendation much
+              easier to absorb at a glance.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="downloads">
+      <div class="inner">
+        <div class="card download-card">
+          <div>
+            <h2 class="section-title" style="font-size: clamp(1.8rem, 3vw, 2.5rem); margin-bottom: 0.5rem;">Project Files</h2>
+            <p class="section-intro" style="max-width: 40rem;">
+              Download the formal report, read the SQL appendix, or review the full repository and generator that
+              produced the submission artifacts.
+            </p>
+          </div>
+          <div class="download-actions">
+            <a class="button secondary" href="forest_query_analysis.sql">SQL Appendix</a>
+            <a class="button secondary" href="forest_query_report.md">Markdown Report</a>
+            <a class="button primary" href="forest_query_report.pdf">PDF Report</a>
+          </div>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <footer>
-    <p>Built from the completed ForestQuery SQL project repository and published via GitHub Pages.</p>
+  <footer class="site-footer">
+    <div class="inner">
+      <p>Published from the ForestQuery project repository on GitHub Pages.</p>
+    </div>
   </footer>
 </body>
 </html>
