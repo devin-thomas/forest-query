@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ForestQuery Deforestation Analysis</title>
+  <style>
+    :root {
+      --bg: #f3efe4;
+      --paper: #fffdf7;
+      --ink: #1d2a22;
+      --muted: #58675d;
+      --accent: #285943;
+      --accent-soft: #dbe9de;
+      --line: #c9d4c7;
+      --highlight: #eabf6b;
+      --shadow: 0 18px 50px rgba(29, 42, 34, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(234, 191, 107, 0.38), transparent 30%),
+        radial-gradient(circle at bottom right, rgba(40, 89, 67, 0.18), transparent 35%),
+        linear-gradient(180deg, #f8f4ea 0%, #efe7d7 100%);
+      line-height: 1.6;
+    }
+
+    a {
+      color: var(--accent);
+    }
+
+    .hero {
+      padding: 4.5rem 1.5rem 3rem;
+    }
+
+    .hero-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      gap: 2rem;
+      grid-template-columns: 1.3fr 0.7fr;
+      align-items: end;
+    }
+
+    .eyebrow {
+      display: inline-block;
+      margin-bottom: 1rem;
+      padding: 0.35rem 0.8rem;
+      border: 1px solid rgba(40, 89, 67, 0.18);
+      border-radius: 999px;
+      background: rgba(255, 253, 247, 0.7);
+      color: var(--accent);
+      font-size: 0.85rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin: 0 0 0.8rem;
+      line-height: 1.1;
+      font-weight: 700;
+    }
+
+    h1 {
+      font-size: clamp(2.4rem, 5vw, 4.7rem);
+      max-width: 12ch;
+    }
+
+    .lede {
+      max-width: 62ch;
+      font-size: 1.08rem;
+      color: var(--muted);
+    }
+
+    .hero-card,
+    .panel,
+    .stat,
+    .table-card {
+      background: rgba(255, 253, 247, 0.9);
+      border: 1px solid rgba(29, 42, 34, 0.08);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card {
+      padding: 1.4rem;
+    }
+
+    .hero-card h2 {
+      font-size: 1rem;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .hero-card p {
+      margin: 0.4rem 0 0;
+      font-size: 1.05rem;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.8rem;
+      margin-top: 1.6rem;
+    }
+
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      padding: 0.85rem 1.15rem;
+      border-radius: 999px;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #f8f4ea;
+      text-decoration: none;
+      font-weight: 700;
+      transition: transform 160ms ease, background 160ms ease;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+      background: #1f4736;
+    }
+
+    .button.secondary {
+      background: transparent;
+      color: var(--accent);
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 1.5rem 4rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .stat {
+      padding: 1.2rem;
+    }
+
+    .stat-label {
+      display: block;
+      margin-bottom: 0.45rem;
+      color: var(--muted);
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .panel {
+      padding: 1.4rem;
+    }
+
+    .panel p,
+    .panel li {
+      color: var(--muted);
+    }
+
+    .panel ul {
+      margin: 0.8rem 0 0;
+      padding-left: 1.2rem;
+    }
+
+    .tables {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .table-card {
+      padding: 1.2rem;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 520px;
+    }
+
+    th,
+    td {
+      padding: 0.75rem 0.7rem;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      font-size: 0.83rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+    }
+
+    .note {
+      margin-top: 1rem;
+      padding: 1rem 1.1rem;
+      border-left: 4px solid var(--highlight);
+      background: rgba(234, 191, 107, 0.15);
+      border-radius: 12px;
+      color: #4a463d;
+    }
+
+    footer {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 1.5rem 3rem;
+      color: var(--muted);
+    }
+
+    @media (max-width: 860px) {
+      .hero-inner,
+      .layout,
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .hero {
+        padding-top: 3rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="hero-inner">
+      <div>
+        <span class="eyebrow">SQL Nanodegree Project</span>
+        <h1>ForestQuery Global Deforestation Analysis</h1>
+        <p class="lede">
+          A publication-ready analysis of forest loss from 1990 to 2016 using the provided World Bank starter data.
+          The project combines SQL view design, regional and country-level investigation, and a narrative report aimed
+          at decision-makers.
+        </p>
+        <div class="hero-actions">
+          <a class="button" href="forest_query_report.pdf">Download PDF Report</a>
+          <a class="button secondary" href="https://github.com/devin-thomas/forest-query">View Repository</a>
+          <a class="button secondary" href="forest_query_analysis.sql">Read SQL Appendix</a>
+        </div>
+      </div>
+      <aside class="hero-card">
+        <h2>Project Snapshot</h2>
+        <p><strong>Course:</strong> Introduction to SQL</p>
+        <p><strong>Deliverables:</strong> SQL appendix, written report, Word/PDF exports, reproducible generator</p>
+        <p><strong>Data Scope:</strong> Global forest area, land area, and regional data from 1990 to 2016</p>
+      </aside>
+    </div>
+  </header>
+
+  <main>
+    <section class="stats" aria-label="Key findings">
+      <article class="stat">
+        <span class="stat-label">Global Forest Loss</span>
+        <div class="stat-value">1.32M sq km</div>
+      </article>
+      <article class="stat">
+        <span class="stat-label">Percent Decline</span>
+        <div class="stat-value">3.21%</div>
+      </article>
+      <article class="stat">
+        <span class="stat-label">Highest 2016 Region</span>
+        <div class="stat-value">Latin America &amp; Caribbean</div>
+      </article>
+      <article class="stat">
+        <span class="stat-label">Regions That Declined</span>
+        <div class="stat-value">2</div>
+      </article>
+    </section>
+
+    <section class="layout">
+      <article class="panel">
+        <h2>What The Analysis Found</h2>
+        <p>
+          World forest area fell from 41.28 million square kilometers in 1990 to 39.96 million in 2016. The loss is
+          roughly comparable to the 2016 land area of Peru, which gives the scale of the decline a concrete real-world
+          frame of reference.
+        </p>
+        <p>
+          Latin America &amp; Caribbean remained the most forested region in both 1990 and 2016, but it also posted the
+          largest regional drop. Sub-Saharan Africa was the only other non-world region to lose forest share over the
+          same period.
+        </p>
+      </article>
+      <article class="panel">
+        <h2>Where ForestQuery Should Focus</h2>
+        <ul>
+          <li>Prioritize Brazil and Indonesia because of their exceptionally large absolute losses.</li>
+          <li>Prioritize Nigeria because it appears in the top five for both absolute and percent decline.</li>
+          <li>Study China and Iceland as positive outliers for possible reforestation lessons.</li>
+          <li>Concentrate regional attention on Latin America &amp; Caribbean and Sub-Saharan Africa.</li>
+        </ul>
+      </article>
+    </section>
+
+    <section class="tables">
+      <article class="table-card">
+        <h2>Regional Forest Share</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Region</th>
+              <th>1990</th>
+              <th>2016</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>East Asia &amp; Pacific</td><td>25.78%</td><td>26.36%</td></tr>
+            <tr><td>Europe &amp; Central Asia</td><td>37.28%</td><td>38.04%</td></tr>
+            <tr><td>Latin America &amp; Caribbean</td><td>51.03%</td><td>46.16%</td></tr>
+            <tr><td>Middle East &amp; North Africa</td><td>1.78%</td><td>2.07%</td></tr>
+            <tr><td>North America</td><td>35.65%</td><td>36.04%</td></tr>
+            <tr><td>South Asia</td><td>16.51%</td><td>17.51%</td></tr>
+            <tr><td>Sub-Saharan Africa</td><td>30.67%</td><td>28.79%</td></tr>
+            <tr><td>World</td><td>32.42%</td><td>31.38%</td></tr>
+          </tbody>
+        </table>
+      </article>
+
+      <article class="table-card">
+        <h2>Top 5 Absolute Forest Area Decreases</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Country</th>
+              <th>Region</th>
+              <th>Decrease</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Brazil</td><td>Latin America &amp; Caribbean</td><td>541,510.00 sq km</td></tr>
+            <tr><td>Indonesia</td><td>East Asia &amp; Pacific</td><td>282,193.98 sq km</td></tr>
+            <tr><td>Myanmar</td><td>East Asia &amp; Pacific</td><td>107,234.00 sq km</td></tr>
+            <tr><td>Nigeria</td><td>Sub-Saharan Africa</td><td>106,506.00 sq km</td></tr>
+            <tr><td>Tanzania</td><td>Sub-Saharan Africa</td><td>102,320.00 sq km</td></tr>
+          </tbody>
+        </table>
+      </article>
+
+      <article class="table-card">
+        <h2>Top 5 Percent Forest Area Decreases</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Country</th>
+              <th>Region</th>
+              <th>Decrease</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>St. Martin (French part)</td><td>Latin America &amp; Caribbean</td><td>100.00%</td></tr>
+            <tr><td>Togo</td><td>Sub-Saharan Africa</td><td>75.45%</td></tr>
+            <tr><td>Nigeria</td><td>Sub-Saharan Africa</td><td>61.80%</td></tr>
+            <tr><td>Uganda</td><td>Sub-Saharan Africa</td><td>59.13%</td></tr>
+            <tr><td>Mauritania</td><td>Sub-Saharan Africa</td><td>46.75%</td></tr>
+          </tbody>
+        </table>
+      </article>
+    </section>
+
+    <div class="note">
+      The full report, SQL appendix, and reproducible generation script are included in the repository. The GitHub Pages
+      site is meant as a fast reader-friendly summary of the final submission.
+    </div>
+  </main>
+
+  <footer>
+    <p>Built from the completed ForestQuery SQL project repository and published via GitHub Pages.</p>
+  </footer>
+</body>
+</html>
