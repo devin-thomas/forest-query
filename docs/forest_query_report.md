@@ -14,6 +14,8 @@ In 2016, 31.38% of the world's land area was forested. The highest regional fore
 
 In 1990, the world forest share was slightly higher at 32.42%. The highest regional forest share was again Latin America & Caribbean at 51.03%, and the lowest was again Middle East & North Africa at 1.78%.
 
+**Table 2.1. Percent Forest Area by Region, 1990 and 2016**
+
 | Region | 1990 Forest Percentage | 2016 Forest Percentage |
 | --- | ---: | ---: |
 | East Asia & Pacific | 25.78% | 26.36% |
@@ -31,13 +33,15 @@ Only two non-world regions saw their forest share decline from 1990 to 2016: Lat
 
 ### Success Stories
 
-The strongest positive outlier in the dataset is China, which increased its forest area by 527,229.06 sq km between 1990 and 2016. The next-largest gain came from Sudan, but its increase of 190,355.29 sq km was far smaller. This suggests ForestQuery can learn from countries that have paired large land bases with sustained reforestation or conservation gains.
+There is one particularly bright spot in the data at the country level: China. It increased forest area by 527,229.06 sq km between 1990 and 2016. The next-largest gain came from Sudan, but that increase of 190,355.29 sq km was much smaller, which makes China's improvement stand out even among the world's largest countries.
 
-When the analysis shifts from absolute change to percent change, the leader is Iceland, which increased forest area by 213.66%. This highlights that smaller countries can deliver dramatic relative gains even when their raw square-kilometer increase is not the largest in the world.
+China and Sudan are both large countries in total land area, so it is useful to check relative change as well as raw square kilometers. On that basis, Iceland leads the dataset with a 213.66% increase in forest area from 1990 to 2016. ForestQuery should study both kinds of success stories: large-scale gains that move global totals and smaller-country gains that show how quickly policy and restoration changes can compound.
 
 ### Largest Concerns
 
-The five countries with the largest absolute decreases in forest area between 1990 and 2016 are shown below.
+Which countries are seeing deforestation to the largest degree? The first lens is absolute forest loss between 1990 and 2016.
+
+**Table 3.1. Top 5 Amount Decrease in Forest Area by Country, 1990 and 2016**
 
 | Country | Region | Forest Area Decrease |
 | --- | --- | ---: |
@@ -47,7 +51,9 @@ The five countries with the largest absolute decreases in forest area between 19
 | Nigeria | Sub-Saharan Africa | 106,506.00 sq km |
 | Tanzania | Sub-Saharan Africa | 102,320.00 sq km |
 
-The next table shows the five largest percent decreases in forest area over the same period.
+The second lens is percent decrease, which highlights countries where forest loss was severe relative to the country's starting forest base.
+
+**Table 3.2. Top 5 Percent Decrease in Forest Area by Country, 1990 and 2016**
 
 | Country | Region | Pct Forest Area Decrease |
 | --- | --- | ---: |
@@ -63,16 +69,22 @@ Nigeria is the only country that appears in the top five for both absolute loss 
 
 ### Quartiles
 
+To understand how forestation was distributed in 2016, countries were grouped into four percentage bands based on their share of land covered by forest.
+
+**Table 3.3. Count of Countries Grouped by Forestation Percent Quartiles, 2016**
+
 | Quartile | Number of Countries |
 | --- | ---: |
-| 1st quartile (0%-25%) | 96 |
-| 2nd quartile (25%-50%) | 72 |
-| 3rd quartile (50%-75%) | 38 |
-| 4th quartile (>75%) | 9 |
+| 1st quartile (0% to 25%) | 96 |
+| 2nd quartile (more than 25% to 50%) | 72 |
+| 3rd quartile (more than 50% to 75%) | 38 |
+| 4th quartile (more than 75%) | 9 |
 
-The largest number of countries in 2016 were in the 1st quartile (0%-25%).
+The largest number of countries in 2016 were in the 1st quartile (0% to 25%), with 96 countries in that band.
 
-There were 9 countries in the top quartile with more than 75% of land designated as forest.
+There were 9 countries in the top quartile in 2016. These are the countries with more than 75% of their land area designated as forest.
+
+**Table 3.4. Top-Quartile Countries, 2016**
 
 | Country | Region | Pct Designated as Forest |
 | --- | --- | ---: |
@@ -90,9 +102,9 @@ In 2016, 94 countries had a higher forestation percentage than the United States
 
 ## 4. Recommendations
 
-ForestQuery should prioritize interventions and partnerships in Brazil, Indonesia, Nigeria, and Tanzania. These countries represent either extremely large absolute losses, severe relative losses, or both.
+ForestQuery should prioritize interventions and partnerships in Brazil and Indonesia because their absolute forest losses are so large that improvements there would materially affect the global total.
 
-The regional pattern also argues for sustained attention in Latin America & Caribbean and Sub-Saharan Africa, the only two non-world regions that moved backward over the period. Communications, grantmaking, and local partner support should be concentrated where these regional declines overlap with the most at-risk countries.
+The regional pattern also argues for sustained attention in Latin America & Caribbean and Sub-Saharan Africa, the only two non-world regions that moved backward over the period. Within those regions, countries such as Nigeria, Togo, and Uganda deserve urgent support because the losses are not just large, they are also steep relative to each country's original forest base.
 
 At the same time, ForestQuery should study positive cases such as China and Iceland to understand which policy, restoration, and land-management strategies might be adapted elsewhere. Learning from successful reforestation stories is likely to improve the impact of future campaigns.
 
@@ -105,7 +117,9 @@ At the same time, ForestQuery should study positive cases such as China and Icel
 --   land_area(country_code, country_name, year, total_area_sq_mi)
 --   regions(country_name, country_code, region, income_group)
 
-CREATE OR REPLACE VIEW forestation AS
+DROP VIEW IF EXISTS forestation;
+
+CREATE VIEW forestation AS
 SELECT
     fa.country_code,
     fa.country_name,
@@ -116,10 +130,10 @@ SELECT
     r.income_group,
     (fa.forest_area_sqkm / (la.total_area_sq_mi * 2.59)) * 100 AS percent_forest
 FROM forest_area AS fa
-JOIN land_area AS la
+LEFT JOIN land_area AS la
     ON fa.country_code = la.country_code
    AND fa.year = la.year
-JOIN regions AS r
+LEFT JOIN regions AS r
     ON fa.country_code = r.country_code;
 
 -- 1a. World forest area in 1990
@@ -146,11 +160,11 @@ SELECT
     f2016.forest_area_sqkm AS forest_area_2016,
     f1990.forest_area_sqkm - f2016.forest_area_sqkm AS forest_area_change_sqkm
 FROM forestation AS f1990
-JOIN forestation AS f2016
+INNER JOIN forestation AS f2016
     ON f1990.country_code = f2016.country_code
+   AND f2016.year = 2016
 WHERE f1990.country_name = 'World'
-  AND f1990.year = 1990
-  AND f2016.year = 2016;
+  AND f1990.year = 1990;
 
 -- 1d. Percent change in world forest area from 1990 to 2016
 SELECT
@@ -159,22 +173,22 @@ SELECT
         2
     ) AS percent_change
 FROM forestation AS f1990
-JOIN forestation AS f2016
+INNER JOIN forestation AS f2016
     ON f1990.country_code = f2016.country_code
+   AND f2016.year = 2016
 WHERE f1990.country_name = 'World'
-  AND f1990.year = 1990
-  AND f2016.year = 2016;
+  AND f1990.year = 1990;
 
 -- 1e. Country whose 2016 total land area is closest to the global forest loss
 WITH world_loss AS (
     SELECT
         f1990.forest_area_sqkm - f2016.forest_area_sqkm AS area_lost_sqkm
     FROM forestation AS f1990
-    JOIN forestation AS f2016
+    INNER JOIN forestation AS f2016
         ON f1990.country_code = f2016.country_code
+       AND f2016.year = 2016
     WHERE f1990.country_name = 'World'
       AND f1990.year = 1990
-      AND f2016.year = 2016
 )
 SELECT
     country_name,
@@ -244,7 +258,7 @@ SELECT
     ROUND(r1990.forest_percent_1990, 2) AS forest_percent_1990,
     ROUND(r2016.forest_percent_2016, 2) AS forest_percent_2016
 FROM regional_1990 AS r1990
-JOIN regional_2016 AS r2016
+INNER JOIN regional_2016 AS r2016
     ON r1990.region = r2016.region
 WHERE r2016.forest_percent_2016 < r1990.forest_percent_1990
   AND r1990.region <> 'World'
@@ -262,10 +276,10 @@ WITH country_changes AS (
             ORDER BY f1990.forest_area_sqkm - f2016.forest_area_sqkm DESC, f1990.country_name
         ) AS amount_rank
     FROM forestation AS f1990
-    JOIN forestation AS f2016
+    INNER JOIN forestation AS f2016
         ON f1990.country_code = f2016.country_code
+       AND f2016.year = 2016
     WHERE f1990.year = 1990
-      AND f2016.year = 2016
       AND f1990.country_name <> 'World'
 )
 SELECT
@@ -290,10 +304,10 @@ WITH country_percent_changes AS (
                      f1990.country_name
         ) AS percent_rank
     FROM forestation AS f1990
-    JOIN forestation AS f2016
+    INNER JOIN forestation AS f2016
         ON f1990.country_code = f2016.country_code
+       AND f2016.year = 2016
     WHERE f1990.year = 1990
-      AND f2016.year = 2016
       AND f1990.country_name <> 'World'
       AND f1990.forest_area_sqkm > 0
 )
@@ -306,20 +320,32 @@ WHERE percent_rank <= 5
 ORDER BY percent_rank;
 
 -- 3c. Countries grouped by 2016 forestation quartile bands
+WITH quartile_groups AS (
+    SELECT
+        CASE
+            WHEN percent_forest <= 25 THEN '1st quartile (0% to 25%)'
+            WHEN percent_forest <= 50 THEN '2nd quartile (more than 25% to 50%)'
+            WHEN percent_forest <= 75 THEN '3rd quartile (more than 50% to 75%)'
+            ELSE '4th quartile (more than 75%)'
+        END AS forest_quartile,
+        CASE
+            WHEN percent_forest <= 25 THEN 1
+            WHEN percent_forest <= 50 THEN 2
+            WHEN percent_forest <= 75 THEN 3
+            ELSE 4
+        END AS quartile_order,
+        country_code
+    FROM forestation
+    WHERE year = 2016
+      AND country_name <> 'World'
+      AND percent_forest IS NOT NULL
+)
 SELECT
-    CASE
-        WHEN percent_forest <= 25 THEN '1st quartile (0% to 25%)'
-        WHEN percent_forest <= 50 THEN '2nd quartile (25% to 50%)'
-        WHEN percent_forest <= 75 THEN '3rd quartile (50% to 75%)'
-        ELSE '4th quartile (greater than 75%)'
-    END AS forest_quartile,
-    COUNT(*) AS country_count
-FROM forestation
-WHERE year = 2016
-  AND country_name <> 'World'
-  AND percent_forest IS NOT NULL
-GROUP BY forest_quartile
-ORDER BY country_count DESC;
+    forest_quartile,
+    COUNT(DISTINCT country_code) AS country_count
+FROM quartile_groups
+GROUP BY forest_quartile, quartile_order
+ORDER BY quartile_order;
 
 -- 3d. Countries in the 4th quartile in 2016
 SELECT

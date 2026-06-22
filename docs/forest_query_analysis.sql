@@ -4,7 +4,9 @@
 --   land_area(country_code, country_name, year, total_area_sq_mi)
 --   regions(country_name, country_code, region, income_group)
 
-CREATE OR REPLACE VIEW forestation AS
+DROP VIEW IF EXISTS forestation;
+
+CREATE VIEW forestation AS
 SELECT
     fa.country_code,
     fa.country_name,
@@ -15,10 +17,10 @@ SELECT
     r.income_group,
     (fa.forest_area_sqkm / (la.total_area_sq_mi * 2.59)) * 100 AS percent_forest
 FROM forest_area AS fa
-JOIN land_area AS la
+LEFT JOIN land_area AS la
     ON fa.country_code = la.country_code
    AND fa.year = la.year
-JOIN regions AS r
+LEFT JOIN regions AS r
     ON fa.country_code = r.country_code;
 
 -- 1a. World forest area in 1990
@@ -45,11 +47,11 @@ SELECT
     f2016.forest_area_sqkm AS forest_area_2016,
     f1990.forest_area_sqkm - f2016.forest_area_sqkm AS forest_area_change_sqkm
 FROM forestation AS f1990
-JOIN forestation AS f2016
+INNER JOIN forestation AS f2016
     ON f1990.country_code = f2016.country_code
+   AND f2016.year = 2016
 WHERE f1990.country_name = 'World'
-  AND f1990.year = 1990
-  AND f2016.year = 2016;
+  AND f1990.year = 1990;
 
 -- 1d. Percent change in world forest area from 1990 to 2016
 SELECT
@@ -58,22 +60,22 @@ SELECT
         2
     ) AS percent_change
 FROM forestation AS f1990
-JOIN forestation AS f2016
+INNER JOIN forestation AS f2016
     ON f1990.country_code = f2016.country_code
+   AND f2016.year = 2016
 WHERE f1990.country_name = 'World'
-  AND f1990.year = 1990
-  AND f2016.year = 2016;
+  AND f1990.year = 1990;
 
 -- 1e. Country whose 2016 total land area is closest to the global forest loss
 WITH world_loss AS (
     SELECT
         f1990.forest_area_sqkm - f2016.forest_area_sqkm AS area_lost_sqkm
     FROM forestation AS f1990
-    JOIN forestation AS f2016
+    INNER JOIN forestation AS f2016
         ON f1990.country_code = f2016.country_code
+       AND f2016.year = 2016
     WHERE f1990.country_name = 'World'
       AND f1990.year = 1990
-      AND f2016.year = 2016
 )
 SELECT
     country_name,
@@ -143,7 +145,7 @@ SELECT
     ROUND(r1990.forest_percent_1990, 2) AS forest_percent_1990,
     ROUND(r2016.forest_percent_2016, 2) AS forest_percent_2016
 FROM regional_1990 AS r1990
-JOIN regional_2016 AS r2016
+INNER JOIN regional_2016 AS r2016
     ON r1990.region = r2016.region
 WHERE r2016.forest_percent_2016 < r1990.forest_percent_1990
   AND r1990.region <> 'World'
@@ -161,10 +163,10 @@ WITH country_changes AS (
             ORDER BY f1990.forest_area_sqkm - f2016.forest_area_sqkm DESC, f1990.country_name
         ) AS amount_rank
     FROM forestation AS f1990
-    JOIN forestation AS f2016
+    INNER JOIN forestation AS f2016
         ON f1990.country_code = f2016.country_code
+       AND f2016.year = 2016
     WHERE f1990.year = 1990
-      AND f2016.year = 2016
       AND f1990.country_name <> 'World'
 )
 SELECT
@@ -189,10 +191,10 @@ WITH country_percent_changes AS (
                      f1990.country_name
         ) AS percent_rank
     FROM forestation AS f1990
-    JOIN forestation AS f2016
+    INNER JOIN forestation AS f2016
         ON f1990.country_code = f2016.country_code
+       AND f2016.year = 2016
     WHERE f1990.year = 1990
-      AND f2016.year = 2016
       AND f1990.country_name <> 'World'
       AND f1990.forest_area_sqkm > 0
 )
@@ -205,20 +207,32 @@ WHERE percent_rank <= 5
 ORDER BY percent_rank;
 
 -- 3c. Countries grouped by 2016 forestation quartile bands
+WITH quartile_groups AS (
+    SELECT
+        CASE
+            WHEN percent_forest <= 25 THEN '1st quartile (0% to 25%)'
+            WHEN percent_forest <= 50 THEN '2nd quartile (more than 25% to 50%)'
+            WHEN percent_forest <= 75 THEN '3rd quartile (more than 50% to 75%)'
+            ELSE '4th quartile (more than 75%)'
+        END AS forest_quartile,
+        CASE
+            WHEN percent_forest <= 25 THEN 1
+            WHEN percent_forest <= 50 THEN 2
+            WHEN percent_forest <= 75 THEN 3
+            ELSE 4
+        END AS quartile_order,
+        country_code
+    FROM forestation
+    WHERE year = 2016
+      AND country_name <> 'World'
+      AND percent_forest IS NOT NULL
+)
 SELECT
-    CASE
-        WHEN percent_forest <= 25 THEN '1st quartile (0% to 25%)'
-        WHEN percent_forest <= 50 THEN '2nd quartile (25% to 50%)'
-        WHEN percent_forest <= 75 THEN '3rd quartile (50% to 75%)'
-        ELSE '4th quartile (greater than 75%)'
-    END AS forest_quartile,
-    COUNT(*) AS country_count
-FROM forestation
-WHERE year = 2016
-  AND country_name <> 'World'
-  AND percent_forest IS NOT NULL
-GROUP BY forest_quartile
-ORDER BY country_count DESC;
+    forest_quartile,
+    COUNT(DISTINCT country_code) AS country_count
+FROM quartile_groups
+GROUP BY forest_quartile, quartile_order
+ORDER BY quartile_order;
 
 -- 3d. Countries in the 4th quartile in 2016
 SELECT
